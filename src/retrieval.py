@@ -16,12 +16,15 @@ def l2_normalize(embeddings):
     return embeddings / norms
 
 
-def extract_embedding(image_path, model, transform, device):
+def extract_embedding(image_source, model, transform, device):
     """
-    Extract a 1280-D embedding from a single image.
+    Extract a 1280-D embedding from a single image path or PIL image.
     Uses eval_transform (no augmentation) for deterministic results.
     """
-    image = Image.open(image_path).convert("RGB")
+    if isinstance(image_source, Image.Image):
+        image = image_source.convert("RGB")
+    else:
+        image = Image.open(image_source).convert("RGB")
     tensor = transform(image).unsqueeze(0).to(device)  # [1, 3, 224, 224]
 
     model.eval()
@@ -32,7 +35,7 @@ def extract_embedding(image_path, model, transform, device):
 
 
 def retrieve_similar_images(
-    image_path, model, transform, index, metadata_df, device="cpu", k=5
+    image_source, model, transform, index, metadata_df, device="cpu", k=5
 ):
     """
     Given a path to a skin lesion image, returns the top-k most similar
@@ -40,7 +43,7 @@ def retrieve_similar_images(
     their metadata and similarity scores.
 
     Args:
-        image_path:   path to the query image (str)
+        image_source: path to the query image (str or Path), or a PIL image
         model:        trained SkinLesionModel (must have get_embedding())
         transform:    eval_transform (no augmentation — deterministic)
         index:        FAISS index built from the training embeddings
@@ -53,7 +56,7 @@ def retrieve_similar_images(
         pandas DataFrame: top-k rows from metadata_df + 'similarity' column,
         sorted by similarity (highest first).
     """
-    embedding = extract_embedding(image_path, model, transform, device)
+    embedding = extract_embedding(image_source, model, transform, device)
     embedding = l2_normalize(embedding.reshape(1, -1)).astype(np.float32)
 
     similarities, indices = index.search(embedding, k)

@@ -12,6 +12,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
+
 def preprocess_image(image, img_size=IMG_SIZE, device=DEVICE):
     """
     Preprocess a single image for the model.
@@ -54,26 +55,34 @@ def preprocess_image(image, img_size=IMG_SIZE, device=DEVICE):
         )
 
     # Ensure 3-channel RGB (handles grayscale, RGBA, palette images, etc.)
-    if pil_image.mode != 'RGB':
-        pil_image = pil_image.convert('RGB')
+    if pil_image.mode != "RGB":
+        pil_image = pil_image.convert("RGB")
 
     # Reuse the same transform pipeline used at eval time
-    local_eval_transform = transforms.Compose([
-        transforms.Resize((img_size, img_size)),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                              std=[0.229, 0.224, 0.225]),
-    ])
+    local_eval_transform = transforms.Compose(
+        [
+            transforms.Resize((img_size, img_size)),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        ]
+    )
 
-    tensor = local_eval_transform(pil_image)   # [3, H, W]
-    tensor = tensor.unsqueeze(0)                # add batch dim -> [1, 3, H, W]
+    tensor = local_eval_transform(pil_image)  # [3, H, W]
+    tensor = tensor.unsqueeze(0)  # add batch dim -> [1, 3, H, W]
     tensor = tensor.to(device)
 
     return tensor
 
 
-def predict_image(image, weights_path, backbone=BACKBONE, num_classes=3,
-                   class_to_idx=None, device=DEVICE, return_probs=True):
+def predict_image(
+    image,
+    weights_path,
+    backbone=BACKBONE,
+    num_classes=3,
+    class_to_idx=None,
+    device=DEVICE,
+    return_probs=True,
+):
     """
     Full inference pipeline: preprocess -> load model -> predict.
 
@@ -108,9 +117,9 @@ def predict_image(image, weights_path, backbone=BACKBONE, num_classes=3,
     input_tensor = preprocess_image(image, device=device)
 
     # 2. Build model architecture and load trained weights
-    model = SkinLesionModel(backbone_name=backbone,
-                             num_classes=num_classes,
-                             pretrained=False)
+    model = SkinLesionModel(
+        backbone_name=backbone, num_classes=num_classes, pretrained=False
+    )
     state_dict = torch.load(weights_path, map_location=device)
     model.load_state_dict(state_dict)
     model = model.to(device)
@@ -118,8 +127,8 @@ def predict_image(image, weights_path, backbone=BACKBONE, num_classes=3,
 
     # 3. Inference
     with torch.no_grad():
-        logits = model(input_tensor)              # [1, num_classes]
-        probs = F.softmax(logits, dim=1)[0]        # [num_classes]
+        logits = model(input_tensor)  # [1, num_classes]
+        probs = F.softmax(logits, dim=1)[0]  # [num_classes]
         pred_idx = int(torch.argmax(probs).item())
         confidence = float(probs[pred_idx].item())
 
@@ -130,9 +139,9 @@ def predict_image(image, weights_path, backbone=BACKBONE, num_classes=3,
         pred_label = idx_to_class_local.get(pred_idx)
 
     result = {
-        'pred_idx': pred_idx,
-        'pred_label': pred_label,
-        'confidence': confidence,
-        'probs': probs.cpu().tolist() if return_probs else None,
+        "pred_idx": pred_idx,
+        "pred_label": pred_label,
+        "confidence": confidence,
+        "probs": probs.cpu().tolist() if return_probs else None,
     }
     return result
