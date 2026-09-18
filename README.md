@@ -7,7 +7,8 @@ This project implements a **Content-Based Image Retrieval (CBIR)** system for de
 * **AI Feature Extraction:** Utilizes state-of-the-art Deep Learning Convolutional Neural Networks (like EfficientNet) to convert 2D skin lesion images into mathematical, high-dimensional embeddings.
 * **Rapid Similarity Search:** Employs Facebook AI Similarity Search (FAISS) to instantly search through thousands of embeddings using Cosine Similarity.
 * **Clinical Interpretability:** Empowers dermatologists by presenting the closest visual matches alongside their ground-truth diagnoses, making the AI's decision-making process transparent and reliable.
-* **Interactive UI:** A Streamlit-based web application allowing users to upload a query image, run the similarity search, and review the top-K retrieved similar cases.
+* **Educational AI Chatbot:** Includes a retrieval-augmented dermatology assistant designed to explain search results, teach skin health concepts (like the ABCDE rule), and enforce medical safety constraints. It supports a built-in offline engine as well as integration with OpenAI (GPT-4) and Google Gemini.
+* **Interactive UI:** A Streamlit-based web application allowing users to upload a query image, run the similarity search, and review the top-K retrieved similar cases alongside chatbot insights.
 
 ## Dataset
 The system is built upon the **International Skin Imaging Collaboration (ISIC)** dataset—the global gold standard for dermoscopic image analysis. Key diagnostic classes include:
